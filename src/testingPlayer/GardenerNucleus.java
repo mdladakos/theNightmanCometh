@@ -10,12 +10,12 @@ import static testingPlayer.RobotPlayer.tryMove;
  */
 public class GardenerNucleus {
 
-    private float NUM_CELL_TREES = 6; //Number of trees to surround the gardener in a tree cell,
-    private float ANGLE_OFFSET = (float) ((Math.PI * 2)/ NUM_CELL_TREES);
+    private int NUM_CELL_TREES = 6; //Number of trees to surround the gardener in a tree cell,
+    //the float value below is used instead of 2pi because that is the value used to transform the radians within the Direction constructor
+    private float ANGLE_OFFSET = 6.2831855f/ NUM_CELL_TREES;
 
     private RobotController rc;
     private boolean isLocationFound = false;
-    private TreeInfo[] treeCellTrees = new TreeInfo[6];
 
     public GardenerNucleus(RobotController rc){
         this.rc = rc;
@@ -23,6 +23,8 @@ public class GardenerNucleus {
     }
 
     void runGardenerNucleus(){
+
+        TreeInfo[] sensedTrees = null;
         System.out.println("I'm a gardener!");
         // Testing git commands
         // The code you want your robot to perform every round should be in this loop
@@ -31,22 +33,22 @@ public class GardenerNucleus {
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
             try {
 
-                // Generate a random direction
-                Direction dir = randomDirection();
-
                 // Determine if current location can hold a tree cell
                 if(isLocationFound) {
-                    if(rc.senseNearbyTrees(2).length <=6) {
+                    sensedTrees = rc.senseNearbyTrees(2*GameConstants.BULLET_TREE_RADIUS);
+                    if(sensedTrees.length<6) {
                         buildCell();
                     }
+
                 } else{
                     // Move randomly
                     tryMove(randomDirection());
                     testLocation();
-
                 }
-                waterTreeCell();
 
+                if(sensedTrees != null) {
+                    waterTreeCell(sensedTrees);
+                }
             } catch (Exception e) {
                 System.out.println("Gardener Exception");
                 e.printStackTrace();
@@ -57,7 +59,6 @@ public class GardenerNucleus {
     }
 
     private void testLocation() throws GameActionException {
-        boolean isSuitable = false;
         int suitableLocation = 0;
 
         /* Currently, I think its better to test the 6 directions rather than a circle. Circles prevent
@@ -86,37 +87,36 @@ public class GardenerNucleus {
                 Direction dir = new Direction(treeDirRad);
                 if (rc.canPlantTree(dir)) {
                     rc.plantTree(dir);
-                    treeCellTrees[treeNum] = rc.senseTreeAtLocation(rc.getLocation().add(dir, 2* GameConstants.BULLET_TREE_RADIUS));
-                    treeNum++;
                     didPlant = true;
                 }
-                treeDirRad = treeDirRad + ANGLE_OFFSET;
+                treeNum = (treeNum+1)%NUM_CELL_TREES;
+                treeDirRad = treeNum*ANGLE_OFFSET;
             }
         }
     }
 
-    private void waterTreeCell() throws GameActionException {
-        System.out.println(rc.canWater());
+    private void waterTreeCell(TreeInfo[] sensedTrees) throws GameActionException {
         if(rc.canWater()){
             int minHealthTreeId = 0;
-            int lowestHealth= Integer.MAX_VALUE;
-            for(TreeInfo tree : treeCellTrees){
+            float lowestHealth= 51;
+            for(TreeInfo tree : sensedTrees){
+//                System.out.println("waterTreeCell: Tree #"+tree.getID()+"  Health: "+tree.getHealth());
+                if(tree != null) {
                     try {
-                        float health = tree.getHealth();
                         if (tree.getHealth() < lowestHealth) {
+                            lowestHealth = tree.getHealth();
                             minHealthTreeId = tree.getID();
                         }
+                    } catch (Exception e) {
+                        System.out.println("waterTreeCell exception");
+                        e.printStackTrace();
                     }
-                    catch(Exception e){
-
-                    }
+                }
             }
-            //If all trees are null or dead, water should not be called
 
-            System.out.println("Watering: " + rc.senseTree(minHealthTreeId));
+//            System.out.println("Watering: " + minHealthTreeId);
             if(minHealthTreeId != 0) {
                 rc.water(minHealthTreeId);
-                System.out.println("Did Water: " + rc.senseTree(minHealthTreeId));
             }
         }
     }

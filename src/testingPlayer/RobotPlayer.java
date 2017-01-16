@@ -8,6 +8,8 @@ public strictfp class RobotPlayer {
     static RobotController rc;
     static List<Integer> TREELIST = new ArrayList<>();
     static boolean hasbuilt = false;
+    static int GARDENERS_TO_HIRE = 10;
+    static int gardenersHired= 0;
 
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
@@ -54,8 +56,9 @@ public strictfp class RobotPlayer {
                 Direction dir = randomDirection();
 
                 // Randomly attempt to build a gardener in this direction
-                if (rc.canHireGardener(dir)) {
+                if (rc.canHireGardener(dir) && gardenersHired < GARDENERS_TO_HIRE) {
                     rc.hireGardener(dir);
+                    gardenersHired++;
                 }
 
                 // Move randomly
