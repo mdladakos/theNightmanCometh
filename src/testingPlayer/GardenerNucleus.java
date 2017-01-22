@@ -35,7 +35,7 @@ public class GardenerNucleus {
 
                 // Determine if current location can hold a tree cell
                 if(isLocationFound) {
-                    sensedTrees = rc.senseNearbyTrees(2*GameConstants.BULLET_TREE_RADIUS);
+                    sensedTrees = rc.senseNearbyTrees((float)1.1*GameConstants.BULLET_TREE_RADIUS);
                     if(sensedTrees.length<6) {
                         buildCell();
                     }
@@ -63,6 +63,8 @@ public class GardenerNucleus {
 
         /* Currently, I think its better to test the 6 directions rather than a circle. Circles prevent
         tree cells from being built diagonally adjacent to other tree cells
+
+        TODO: Break after getting a false
          */
         for(int i = 0; i<NUM_CELL_TREES; i++){
             if(rc.canPlantTree(new Direction(i * ANGLE_OFFSET))){
@@ -83,13 +85,14 @@ public class GardenerNucleus {
         float treeDirRad = 0;
 
         if(rc.getTeamBullets() >= GameConstants.BULLET_TREE_COST) {
-            while (!didPlant) {
+
+            while (!didPlant && rc.isBuildReady() && treeNum < NUM_CELL_TREES) {
                 Direction dir = new Direction(treeDirRad);
                 if (rc.canPlantTree(dir)) {
                     rc.plantTree(dir);
                     didPlant = true;
                 }
-                treeNum = (treeNum+1)%NUM_CELL_TREES;
+                treeNum = (treeNum+1);
                 treeDirRad = treeNum*ANGLE_OFFSET;
             }
         }
