@@ -35,7 +35,7 @@ public class GardenerNucleus {
 
                 // Determine if current location can hold a tree cell
                 if(isLocationFound) {
-                    sensedTrees = rc.senseNearbyTrees(2*GameConstants.BULLET_TREE_RADIUS);
+                    sensedTrees = rc.senseNearbyTrees((float)1.1*GameConstants.BULLET_TREE_RADIUS);
                     if(sensedTrees.length<6) {
                         buildCell();
                     }
@@ -45,10 +45,11 @@ public class GardenerNucleus {
                     tryMove(randomDirection());
                     testLocation();
                 }
-
+                System.out.println(Clock.getBytecodeNum());
                 if(sensedTrees != null) {
                     waterTreeCell(sensedTrees);
                 }
+                System.out.println(Clock.getBytecodeNum());
             } catch (Exception e) {
                 System.out.println("Gardener Exception");
                 e.printStackTrace();
@@ -83,13 +84,13 @@ public class GardenerNucleus {
         float treeDirRad = 0;
 
         if(rc.getTeamBullets() >= GameConstants.BULLET_TREE_COST) {
-            while (!didPlant) {
+            while (!didPlant&&rc.isBuildReady()&&treeNum<6) {
                 Direction dir = new Direction(treeDirRad);
                 if (rc.canPlantTree(dir)) {
                     rc.plantTree(dir);
                     didPlant = true;
                 }
-                treeNum = (treeNum+1)%NUM_CELL_TREES;
+                treeNum = (treeNum+1);
                 treeDirRad = treeNum*ANGLE_OFFSET;
             }
         }

@@ -3,6 +3,8 @@ import battlecode.common.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.lang.Math;
 
 public strictfp class RobotPlayer {
     static RobotController rc;
@@ -62,7 +64,11 @@ public strictfp class RobotPlayer {
                 }
 
                 // Move randomly
-                tryMove(randomDirection());
+                MapLocation endDest = rc.getLocation().add(0, 5);
+
+                System.out.print(endDest);
+                rc.move(pathing(endDest));
+                System.out.print("tried to move");
 
                 // Broadcast archon's location for other robots on the team to know
 //                MapLocation myLocation = rc.getLocation();
@@ -343,5 +349,87 @@ public strictfp class RobotPlayer {
         float perpendicularDist = (float)Math.abs(distToRobot * Math.sin(theta)); // soh cah toa :)
 
         return (perpendicularDist <= rc.getType().bodyRadius);
+    }
+
+    public static MapLocation pathing (MapLocation endDest){
+        List<PathingNode> open = new ArrayList<PathingNode>();
+        List<PathingNode> closed = new ArrayList<PathingNode>();
+        PathingNode start = new PathingNode(rc.getLocation(), endDest, rc.getLocation());
+
+        open.add(start);
+
+        float minfCost = 150;
+        float minhCost = 150;
+        float mingCost = 150;
+        MapLocation neighborNode;
+
+        int current=0;
+        int NUMNODES = 8;
+
+        System.out.print("Pathing initilized");
+
+        while(!closed.contains(endDest)) {
+            for(PathingNode node:open){
+                if(node!=null) {
+                    if (node.fCost < minfCost) {
+                        minfCost = node.fCost;
+                        minhCost = node.hCost;
+                        current=open.indexOf(node);
+                    }
+                    if ((node.fCost == minfCost) && (node.hCost < minhCost)) {
+                        minfCost = node.fCost;
+                        minhCost = node.hCost;
+                        current=open.indexOf(node);
+                    }
+                    System.out.print("\ncurrent f cost " + open.get(current).fCost);
+                    System.out.print("\nmin f Cost " + minfCost);
+                    System.out.print("\n size of open " + open.size());
+                    System.out.print("\n Target: " + endDest.x + "," + endDest.y);
+                    System.out.print("\n Current Loc: "+open.get(current).nodeLocation.x + " , " + open.get(current).nodeLocation.y);
+                }
+            }
+
+            closed.add(open.get(current));
+            System.out.print("\ncurrent added to close");
+            open.remove(current);
+            System.out.print("\n current removed from open");
+
+            if(closed.get(current).nodeLocation.distanceTo(endDest) <= rc.getType().bodyRadius+2){   // exit if statement, will probably need fixed with
+                for(PathingNode node:closed){                                                       // a "path array"
+                    if(node!=null) {
+                        if (node.gCost < mingCost) {
+                            mingCost = node.gCost;
+                            current = closed.indexOf(node);
+                        }
+                    }
+                }
+                System.out.print("\nleaving loop");
+                return closed.get(current).nodeLocation;
+            }
+
+            for (int i = 0; i <8 ; i++) {
+                neighborNode = closed.get(current).nodeLocation.add(6.2831855f*i/NUMNODES,rc.getType().strideRadius);
+
+                try {
+                    if(!rc.isCircleOccupiedExceptByThisRobot(neighborNode,rc.getType().strideRadius)){
+                        PathingNode neighbor = new PathingNode(rc.getLocation(),endDest,neighborNode);
+                        open.add(neighbor);
+                    }
+                } catch (GameActionException e) {
+                    e.printStackTrace();
+                }
+
+
+
+            }
+
+
+
+
+
+
+    }
+                System.out.print("\n leaving loop 2");
+                return closed.get(current).nodeLocation;
     }
 }
