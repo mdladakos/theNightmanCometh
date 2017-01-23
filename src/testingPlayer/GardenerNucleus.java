@@ -45,11 +45,10 @@ public class GardenerNucleus {
                     tryMove(randomDirection());
                     testLocation();
                 }
-                System.out.println(Clock.getBytecodeNum());
+
                 if(sensedTrees != null) {
                     waterTreeCell(sensedTrees);
                 }
-                System.out.println(Clock.getBytecodeNum());
             } catch (Exception e) {
                 System.out.println("Gardener Exception");
                 e.printStackTrace();
@@ -64,6 +63,8 @@ public class GardenerNucleus {
 
         /* Currently, I think its better to test the 6 directions rather than a circle. Circles prevent
         tree cells from being built diagonally adjacent to other tree cells
+
+        TODO: Break after getting a false
          */
         for(int i = 0; i<NUM_CELL_TREES; i++){
             if(rc.canPlantTree(new Direction(i * ANGLE_OFFSET))){
@@ -84,7 +85,8 @@ public class GardenerNucleus {
         float treeDirRad = 0;
 
         if(rc.getTeamBullets() >= GameConstants.BULLET_TREE_COST) {
-            while (!didPlant&&rc.isBuildReady()&&treeNum<6) {
+
+            while (!didPlant && rc.isBuildReady() && treeNum < NUM_CELL_TREES) {
                 Direction dir = new Direction(treeDirRad);
                 if (rc.canPlantTree(dir)) {
                     rc.plantTree(dir);
