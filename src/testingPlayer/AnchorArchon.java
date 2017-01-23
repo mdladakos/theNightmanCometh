@@ -1,17 +1,14 @@
 package testingPlayer;
 
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 /**
  * Created by Demetri on 1/20/2017.
  */
-public class AnchorArchon {
+public class AnchorArchon extends Pathable{
 
     private RobotController rc;
-    private float centerX = 300; //Possible ranges for the x value of center is 0 - 600
-    private float centerY = 300; //Possible ranges for the y value of center is 0 - 600
+    private MapLocation center;
 
     public AnchorArchon(RobotController rc){
         this.rc = rc;
@@ -24,12 +21,16 @@ public class AnchorArchon {
         try {
 
             //this should only happen once, and is therefore outside of the while loop
-            attemptFindCenter();
+            center = attemptFindCenter();
+            MapLocation target = new MapLocation(550, 525);
+            rc.setIndicatorLine(rc.getLocation(), target, 0,0,0);
 
             while (true) {
                 //go near corner
-
+              path(target);
                 //create gardeners
+
+                Clock.yield();
             }
 
         }catch(GameActionException e){
@@ -37,7 +38,10 @@ public class AnchorArchon {
         }
     }
 
-    private void attemptFindCenter(){
+    private MapLocation attemptFindCenter(){
+
+        float centerX = 300;
+        float centerY = 300;
 
         //get center knowledge
         MapLocation[] alliedArchons = rc.getInitialArchonLocations(rc.getTeam());
@@ -46,7 +50,6 @@ public class AnchorArchon {
         MapLocation alliedAverage = getAverageLocation(alliedArchons);
         MapLocation enemyAverage = getAverageLocation(enemyArchons);
         MapLocation potentialCenter = getAverageLocation(alliedAverage, enemyAverage);
-
 
         if (alliedAverage.x == enemyAverage.x) {
             //If our X's match, then it's a horizontal reflection and we know the map's Y-axis midpoint
@@ -63,6 +66,8 @@ public class AnchorArchon {
             centerY = potentialCenter.y;
             centerX = potentialCenter.x;
         }
+
+        return center = new MapLocation(centerX, centerY);
     }
 
     private MapLocation getAverageLocation(MapLocation[] locations){
