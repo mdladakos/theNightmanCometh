@@ -2,8 +2,7 @@ package testingPlayer;
 
 import battlecode.common.*;
 
-import static testingPlayer.RobotPlayer.randomDirection;
-import static testingPlayer.RobotPlayer.tryMove;
+import static testingPlayer.RobotPlayer.*;
 
 /**
  * Created by Demetri on 1/15/2017.
@@ -16,6 +15,7 @@ public class GardenerNucleus {
 
     private RobotController rc;
     private boolean isLocationFound = false;
+    private int MISSION_NUMBER=Mission.GARDENER_NUCLEUS.missionNum;
 
     public GardenerNucleus(RobotController rc){
         this.rc = rc;
@@ -28,34 +28,44 @@ public class GardenerNucleus {
         System.out.println("I'm a gardener!");
         // Testing git commands
         // The code you want your robot to perform every round should be in this loop
-        while (true) {
 
-            // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
-            try {
+
+        // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
+        try {
+            //this should only happen once, and is therefore outside of the while loop
+            getTransmissionID();
+
+            while (mission==MISSION_NUMBER) {
+                //Every turn, check to see if the mission is updated,
+                //but the robot won't change behavior for a turn
+                updateMission();
 
                 // Determine if current location can hold a tree cell
-                if(isLocationFound) {
-                    sensedTrees = rc.senseNearbyTrees((float)1.1*GameConstants.BULLET_TREE_RADIUS);
-                    if(sensedTrees.length<6) {
+                if (isLocationFound) {
+                    sensedTrees = rc.senseNearbyTrees((float) 1.1 * GameConstants.BULLET_TREE_RADIUS);
+                    if (sensedTrees.length < 6) {
                         buildCell();
                     }
 
-                } else{
+                } else {
                     // Move randomly
                     tryMove(randomDirection());
                     testLocation();
                 }
 
-                if(sensedTrees != null) {
+                if (sensedTrees != null) {
                     waterTreeCell(sensedTrees);
                 }
-            } catch (Exception e) {
-                System.out.println("Gardener Exception");
-                e.printStackTrace();
+
+                // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
+                Clock.yield();
             }
-            // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
-            Clock.yield();
+        } catch (Exception e) {
+            System.out.println("Gardener Exception");
+            e.printStackTrace();
         }
+
+
     }
 
     private void testLocation() throws GameActionException {

@@ -2,6 +2,10 @@ package testingPlayer;
 
 import battlecode.common.*;
 
+import static testingPlayer.RobotPlayer.getTransmissionID;
+import static testingPlayer.RobotPlayer.mission;
+import static testingPlayer.RobotPlayer.updateMission;
+
 /**
  * Created by Demetri on 1/20/2017.
  */
@@ -9,9 +13,11 @@ public class AnchorArchon extends Pathable{
 
     private RobotController rc;
     private MapLocation center;
+    private int MISSION_NUMBER = Mission.ANCHOR_ARCHON.missionNum;
 
     public AnchorArchon(RobotController rc){
         this.rc = rc;
+        mission = MISSION_NUMBER;
         runAnchorArchon();
     }
 
@@ -19,16 +25,21 @@ public class AnchorArchon extends Pathable{
     public void runAnchorArchon(){
 
         try {
-
             //this should only happen once, and is therefore outside of the while loop
-            center = attemptFindCenter();
-            MapLocation target = new MapLocation(550, 525);
+            getTransmissionID();
+
+            center = getAverageLocation(rc.getInitialArchonLocations(rc.getTeam().opponent()));
+            MapLocation target = center;
             rc.setIndicatorLine(rc.getLocation(), target, 0,0,0);
 
-            while (true) {
-                //go near corner
-              path(target);
-                //create gardeners
+            while (mission == MISSION_NUMBER) {
+                //Every turn, check to see if the mission is updated,
+                //but the robot won't change behavior for a turn
+                updateMission();
+
+                //It is currently expected that the archon will not move or move very little
+                //He will spawn a couple gardeners that will be mechanics and spawn a scout
+                //and lumberjacks. Then tree cells will be spawned and built around the archon.
 
                 Clock.yield();
             }
