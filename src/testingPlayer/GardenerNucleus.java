@@ -32,6 +32,9 @@ public class GardenerNucleus {
 
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
             try {
+                if(rc.senseNearbyTrees()!= null && rc.canBuildRobot(RobotType.LUMBERJACK, randomDirection()))
+                    rc.buildRobot(RobotType.LUMBERJACK,randomDirection());
+
 
                 // Determine if current location can hold a tree cell
                 if(isLocationFound) {

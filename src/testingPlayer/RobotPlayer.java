@@ -39,9 +39,9 @@ public strictfp class RobotPlayer {
             case SOLDIER:
                 runSoldier();
                 break;
-//            case LUMBERJACK:
-//                runLumberjack();
-//                break;
+            case LUMBERJACK:
+                new Lumberjack(rc);
+                break;
         }
 	}
 
@@ -66,9 +66,6 @@ public strictfp class RobotPlayer {
                 // Move randomly
                 MapLocation endDest = rc.getLocation().add(0, 5);
 
-                System.out.print(endDest);
-                rc.move(pathing(endDest));
-                System.out.print("tried to move");
 
                 // Broadcast archon's location for other robots on the team to know
 //                MapLocation myLocation = rc.getLocation();
@@ -225,29 +222,9 @@ public strictfp class RobotPlayer {
 
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
             try {
+                runLumberjack();
 
-                // See if there are any enemy robots within striking range (distance 1 from lumberjack's radius)
-                RobotInfo[] robots = rc.senseNearbyRobots(RobotType.LUMBERJACK.bodyRadius+GameConstants.LUMBERJACK_STRIKE_RADIUS, enemy);
 
-                if(robots.length > 0 && !rc.hasAttacked()) {
-                    // Use strike() to hit all nearby robots!
-                    rc.strike();
-                } else {
-                    // No close robots, so search for robots within sight radius
-                    robots = rc.senseNearbyRobots(-1,enemy);
-
-                    // If there is a robot, move towards it
-                    if(robots.length > 0) {
-                        MapLocation myLocation = rc.getLocation();
-                        MapLocation enemyLocation = robots[0].getLocation();
-                        Direction toEnemy = myLocation.directionTo(enemyLocation);
-
-                        tryMove(toEnemy);
-                    } else {
-                        // Move Randomly
-                        tryMove(randomDirection());
-                    }
-                }
 
                 // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
                 Clock.yield();
@@ -349,87 +326,5 @@ public strictfp class RobotPlayer {
         float perpendicularDist = (float)Math.abs(distToRobot * Math.sin(theta)); // soh cah toa :)
 
         return (perpendicularDist <= rc.getType().bodyRadius);
-    }
-
-    public static MapLocation pathing (MapLocation endDest){
-        List<PathingNode> open = new ArrayList<PathingNode>();
-        List<PathingNode> closed = new ArrayList<PathingNode>();
-        PathingNode start = new PathingNode(rc.getLocation(), endDest, rc.getLocation());
-
-        open.add(start);
-
-        float minfCost = 150;
-        float minhCost = 150;
-        float mingCost = 150;
-        MapLocation neighborNode;
-
-        int current=0;
-        int NUMNODES = 8;
-
-        System.out.print("Pathing initilized");
-
-        while(!closed.contains(endDest)) {
-            for(PathingNode node:open){
-                if(node!=null) {
-                    if (node.fCost < minfCost) {
-                        minfCost = node.fCost;
-                        minhCost = node.hCost;
-                        current=open.indexOf(node);
-                    }
-                    if ((node.fCost == minfCost) && (node.hCost < minhCost)) {
-                        minfCost = node.fCost;
-                        minhCost = node.hCost;
-                        current=open.indexOf(node);
-                    }
-                    System.out.print("\ncurrent f cost " + open.get(current).fCost);
-                    System.out.print("\nmin f Cost " + minfCost);
-                    System.out.print("\n size of open " + open.size());
-                    System.out.print("\n Target: " + endDest.x + "," + endDest.y);
-                    System.out.print("\n Current Loc: "+open.get(current).nodeLocation.x + " , " + open.get(current).nodeLocation.y);
-                }
-            }
-
-            closed.add(open.get(current));
-            System.out.print("\ncurrent added to close");
-            open.remove(current);
-            System.out.print("\n current removed from open");
-
-            if(closed.get(current).nodeLocation.distanceTo(endDest) <= rc.getType().bodyRadius+2){   // exit if statement, will probably need fixed with
-                for(PathingNode node:closed){                                                       // a "path array"
-                    if(node!=null) {
-                        if (node.gCost < mingCost) {
-                            mingCost = node.gCost;
-                            current = closed.indexOf(node);
-                        }
-                    }
-                }
-                System.out.print("\nleaving loop");
-                return closed.get(current).nodeLocation;
-            }
-
-            for (int i = 0; i <8 ; i++) {
-                neighborNode = closed.get(current).nodeLocation.add(6.2831855f*i/NUMNODES,rc.getType().strideRadius);
-
-                try {
-                    if(!rc.isCircleOccupiedExceptByThisRobot(neighborNode,rc.getType().strideRadius)){
-                        PathingNode neighbor = new PathingNode(rc.getLocation(),endDest,neighborNode);
-                        open.add(neighbor);
-                    }
-                } catch (GameActionException e) {
-                    e.printStackTrace();
-                }
-
-
-
-            }
-
-
-
-
-
-
-    }
-                System.out.print("\n leaving loop 2");
-                return closed.get(current).nodeLocation;
     }
 }

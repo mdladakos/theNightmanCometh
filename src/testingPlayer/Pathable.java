@@ -16,8 +16,7 @@ public abstract class Pathable {
     private int CHECKS_PER_SIDE = 100;
 
     private MapLocation start;
-    private MapLocation dest;
-    private MapLocation current;
+    private MapLocation dest = rc.getLocation();
     private Direction mLine;
     private boolean isTracing;
 
@@ -34,7 +33,7 @@ public abstract class Pathable {
     public void path(MapLocation dest) throws GameActionException {
 
         //reset values if the destination passed in is different than the one stored
-        if(dest!= this.dest) {
+        if(!this.dest.equals(dest)) {
             isTracing = false; //if there's a new destination, ditch tracing
             this.dest = dest; //set the new destination
             start = rc.getLocation(); //set the new start
@@ -47,7 +46,6 @@ public abstract class Pathable {
         }else {
             if (rc.canMove(dest)) {
                 rc.move(dest);
-                current = rc.getLocation();
             }else{
                 isTracing=true;
                 trace();
@@ -60,11 +58,11 @@ public abstract class Pathable {
     private void trace() throws GameActionException {
 
         //Direction from the current location to the destination
-        Direction cLine = current.directionTo(dest);
+        Direction cLine = rc.getLocation().directionTo(dest);
         //The radians between mLine and cLine. Positive values are to the "left".
         float deviation = mLine.radiansBetween(cLine);
 
-        Direction retVal = current.directionTo(dest);
+        Direction retVal = rc.getLocation().directionTo(dest);
         int currentCheck = 0;
         boolean firstNoFound = false;
         boolean canMove = false;
