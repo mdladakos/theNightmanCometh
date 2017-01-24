@@ -10,6 +10,13 @@ public strictfp class RobotPlayer {
     static boolean hasbuilt = false;
     static int GARDENERS_TO_HIRE = 10;
     static int gardenersHired= 0;
+    static int transmissionID=0;
+    static int mission=0;
+    static int i=0;
+    static double health=0;
+    static float x=0;
+    static float y=0;
+
 
     /**
      * run() is the method that is called when a robot is instantiated in the Battlecode world.
@@ -47,10 +54,102 @@ public strictfp class RobotPlayer {
         System.out.println("I'm an archon!");
 
         // The code you want your robot to perform every round should be in this loop
+        // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
         while (true) {
-
-            // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
             try {
+
+
+                //Run only on initial turn
+
+                //Check for and get transmissionID
+
+                if (transmissionID==0) {
+                    i = 1;
+                    while (transmissionID ==0) {
+
+
+                        if (rc.readBroadcast(i) == 0) {
+                            transmissionID = i;
+                        } else {
+                            i = i + 1;
+                        }
+
+
+                        //Upon birth check for and store health to track changes later
+
+                        health=rc.getHealth();
+                    }
+
+                    // Define Initial Mission
+
+                    if(transmissionID==1){
+
+                        //First Archon Initially Defined as Alpha
+
+                        mission=101;
+
+                        rc.broadcast(transmissionID,mission);
+
+                    }
+
+                    else{
+
+                        //Second and third Archons initially defined as sub
+
+                        mission=102;
+
+                        rc.broadcast(transmissionID,mission);
+
+                    }
+
+
+
+                }
+
+
+                //Run on every turn
+
+                //Check for Redefined Mission
+
+                if (mission > 100) {
+
+                    mission = rc.readBroadcast(transmissionID);
+
+                }
+
+
+
+                //Archon Alpha
+
+                if (mission==101) {
+
+                    //Check if health has decreased from last turn, if so relinquish control
+                    if(health>rc.getHealth()){
+
+                        MapLocation(x,y)=rc.getLocation();
+
+
+                    }
+
+
+
+                    // Move randomly
+                    tryMove(randomDirection());
+
+
+                }
+
+
+                //Archon Sub
+
+                if (mission==102) {
+
+                    // Move randomly
+                    tryMove(randomDirection());
+
+
+
+                }
 
                 // Generate a random direction
                 Direction dir = randomDirection();
@@ -60,6 +159,7 @@ public strictfp class RobotPlayer {
                     rc.hireGardener(dir);
                     gardenersHired++;
                 }
+
 
                 // Move randomly
                 tryMove(randomDirection());
