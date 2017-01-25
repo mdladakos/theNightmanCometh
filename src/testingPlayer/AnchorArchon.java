@@ -2,9 +2,7 @@ package testingPlayer;
 
 import battlecode.common.*;
 
-import static testingPlayer.RobotPlayer.getTransmissionID;
-import static testingPlayer.RobotPlayer.mission;
-import static testingPlayer.RobotPlayer.updateMission;
+import static testingPlayer.RobotPlayer.*;
 
 /**
  * Created by Demetri on 1/20/2017.
@@ -13,7 +11,7 @@ public class AnchorArchon extends Pathable{
 
     private RobotController rc;
     private MapLocation center;
-    private float CLEAR_SPACE = 3.5f;
+    private float CLEAR_SPACE = 4.5f;
     private int MISSION_NUMBER = Mission.ANCHOR_ARCHON.missionNum;
 
     public AnchorArchon(RobotController rc){
@@ -48,6 +46,9 @@ public class AnchorArchon extends Pathable{
                 if (rc.canHireGardener(rc.getLocation().directionTo(center).opposite()) && rc.getTeamBullets() > 200) {
                     rc.hireGardener(rc.getLocation().directionTo(center).opposite());
                 }
+
+                //donate method at the end of each robot's turn
+                trollToll();
                 Clock.yield();
             }
 

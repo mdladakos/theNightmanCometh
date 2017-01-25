@@ -2,6 +2,8 @@ package testingPlayer;
 
 import battlecode.common.*;
 
+import static testingPlayer.RobotPlayer.trollToll;
+
 public class Lumberjack extends Pathable{
 
     private RobotController rc;
@@ -29,12 +31,17 @@ public class Lumberjack extends Pathable{
                     rc.strike();
                 }
                 else if(rc.canChop(target)) {
+                    if(rc.canShake(target)) {
+                        rc.shake(target);
+                    }
                     rc.chop(target);
                 }
                 else {
                     path(target);
                 }
 
+                //donate method at the end of each turn
+                trollToll();
                 Clock.yield();
             }
             catch (Exception e) {

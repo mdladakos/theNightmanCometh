@@ -10,7 +10,7 @@ public strictfp class RobotPlayer {
     static int mission = DEFAULT_MISSION.missionNum;
 //
 //
-//    static List<Integer> TREELIST = new ArrayList<>();
+//
 //    static boolean hasbuilt = false;
 //    static int GARDENERS_TO_HIRE = 10;
 //    static int gardenersHired= 0;
@@ -39,17 +39,20 @@ public strictfp class RobotPlayer {
                         new AnchorArchon(rc);
                         break;
                     case SCOUT:
-
+                        new ShakeScout(rc);
                         break;
                     case GARDENER:
                         mission = GARDENER_NUCLEUS.missionNum;
                         new GardenerNucleus(rc);
                         break;
                     case SOLDIER:
-
+                        new Attacker(rc);
                         break;
                     case LUMBERJACK:
                         new Lumberjack(rc);
+                        break;
+                    case TANK:
+                        new Attacker(rc);
                         break;
                 }
             } else {
@@ -65,60 +68,6 @@ public strictfp class RobotPlayer {
         }
     }
 
-
-//    static void runScout() throws GameActionException {
-//
-//        System.out.println("I'm a scout!");
-//        while(true) {
-//            try {
-//                rc.broadcast(1, 1);
-//
-//
-//                TreeInfo[] trees = rc.senseNearbyTrees();
-//                TreeInfo nextTree;
-//                float nextTreeDist = 9999999;
-//
-//                if (trees.length != 0) {
-//                    nextTree = trees[0];
-//                    for (TreeInfo tree : trees) {
-//
-//                        if(!TREELIST.contains(tree.getID())) {
-//
-//                            if (rc.getLocation().distanceTo(tree.getLocation()) < nextTreeDist) {
-//                                nextTree = tree;
-//                            }
-//                        }
-//                    }
-//                    try {
-//                        if(!TREELIST.contains(nextTree.getID())) {
-//                            rc.move(nextTree.getLocation());
-//                        }else{
-//                            tryMove(randomDirection());
-//                        }
-//                    }catch(GameActionException e){
-//                        TREELIST.add(nextTree.getID());
-//                    }
-//                    if(rc.canShake(nextTree.getLocation())){
-//                        System.out.println("Tree " + nextTree.getID() + " Bullets: " + nextTree.getContainedBullets());
-//                        System.out.println("Tree " + nextTree.getID() + " Robot: " + nextTree.getContainedRobot());
-//                        rc.shake(nextTree.getLocation());
-//                        TREELIST.add(nextTree.getID());
-//
-//                        rc.donate(100);
-//                    }
-//
-//                    // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
-//                    Clock.yield();
-//
-//                } else {
-//                    tryMove(randomDirection());
-//                    Clock.yield();
-//                }
-//            } catch (Exception e) {
-//                System.out.println("Scout Exception!");
-//            }
-//        }
-//    }
 
     /**
      * Returns a random Direction
@@ -237,4 +186,23 @@ public strictfp class RobotPlayer {
     static public void updateMission() throws GameActionException {
         transmissionId = rc.readBroadcast(transmissionId);
     }
+
+    public static void trollToll() throws GameActionException {
+
+        float donation;
+        float bank=1000;
+        float cost=rc.getVictoryPointCost();
+        float bullets=rc.getTeamBullets();
+        int VP=rc.getTeamVictoryPoints();
+
+        if((1000-VP)<bullets/cost){
+            donation=(1000-VP)*cost;
+        } else{
+            donation=Math.round((bullets-bank)/cost)*cost;
+        }
+        if(donation >= cost){
+            rc.donate(donation);
+        }
+    }
+
 }

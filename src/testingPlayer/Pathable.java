@@ -49,6 +49,7 @@ public abstract class Pathable {
                 start = rc.getLocation(); //set the new start
                 mLine = start.directionTo(dest); //set the new mLine
                 isTracing=true;
+                System.out.println("Start tracing!");
                 traceStartDist = rc.getLocation().distanceTo(dest);
                 trace();
             }
@@ -115,15 +116,18 @@ public abstract class Pathable {
                     System.out.println("dist = " + dist);
                     rc.move(retVal, dist);
                     didMove=true;
-                    if(rc.getLocation().distanceTo(dest) < traceStartDist) {
+//                    if(rc.getLocation().distanceTo(dest) <= traceStartDist) {
                         isTracing = false;
-                    }
-                } else if((deviation*check)==0){
+//                    }
+                } else if(check==0){
                     rc.move(retVal);
                     didMove = true;
-                    if(rc.getLocation().distanceTo(dest) < traceStartDist) {
+//                    if(rc.getLocation().distanceTo(dest) <= traceStartDist) {
                         isTracing = false;
-                    }
+//                    }
+                } else {
+                    rc.move(retVal);
+                    didMove=true;
                 }
             }
 
