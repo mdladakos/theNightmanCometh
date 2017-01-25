@@ -3,11 +3,12 @@ package testingPlayer;
 import battlecode.common.*;
 
 import static testingPlayer.RobotPlayer.*;
+import java.util.Map;
 
 /**
  * Created by Demetri on 1/15/2017.
  */
-public class GardenerNucleus {
+public class GardenerNucleus extends Pathable {
 
     private int NUM_CELL_TREES = 6; //Number of trees to surround the gardener in a tree cell,
     //the float value below is used instead of 2pi because that is the value used to transform the radians within the Direction constructor
@@ -16,29 +17,49 @@ public class GardenerNucleus {
     private RobotController rc;
     private boolean isLocationFound = false;
     private int MISSION_NUMBER=Mission.GARDENER_NUCLEUS.missionNum;
+    private int derpderp;
 
     public GardenerNucleus(RobotController rc){
         this.rc = rc;
         runGardenerNucleus();
     }
 
-    void runGardenerNucleus(){
+    void runGardenerNucleus() {
 
         TreeInfo[] sensedTrees = null;
         System.out.println("I'm a gardener!");
+        int numberLumber = 0;
+        float centerX = 0;
+        float centerY = 0;
+
+        try {
+            centerX = rc.readBroadcastFloat(9998);
+            centerY = rc.readBroadcastFloat(9999);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        MapLocation center = new MapLocation(centerX, centerY);
+        MapLocation anchor = rc.getInitialArchonLocations(rc.getTeam())[0].add(rc.getInitialArchonLocations(rc.getTeam())[0].directionTo(center), (float) 5.5);
+
         // Testing git commands
         // The code you want your robot to perform every round should be in this loop
-
 
         // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
         try {
             //this should only happen once, and is therefore outside of the while loop
             getTransmissionID();
 
-            while (mission==MISSION_NUMBER) {
+            while (mission == MISSION_NUMBER) {
                 //Every turn, check to see if the mission is updated,
                 //but the robot won't change behavior for a turn
                 updateMission();
+                // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
+
+                if (rc.senseNearbyTrees(rc.getType().sensorRadius, Team.NEUTRAL).length > numberLumber && rc.canBuildRobot(RobotType.LUMBERJACK, randomDirection())) {
+                    rc.buildRobot(RobotType.LUMBERJACK, randomDirection());
+                    numberLumber++;
+                }
 
                 // Determine if current location can hold a tree cell
                 if (isLocationFound) {
@@ -48,8 +69,7 @@ public class GardenerNucleus {
                     }
 
                 } else {
-                    // Move randomly
-                    tryMove(randomDirection());
+                    path(anchor);
                     testLocation();
                 }
 
@@ -64,9 +84,9 @@ public class GardenerNucleus {
             System.out.println("Gardener Exception");
             e.printStackTrace();
         }
-
-
     }
+
+
 
     private void testLocation() throws GameActionException {
         int suitableLocation = 0;
@@ -82,9 +102,20 @@ public class GardenerNucleus {
             }
         }
 
-        if(suitableLocation== NUM_CELL_TREES){
+        if(suitableLocation== NUM_CELL_TREES && rc.getLocation().distanceTo(rc.getInitialArchonLocations(rc.getTeam())[0]) > 5){
             isLocationFound = true;
             buildCell();
+
+        }
+
+        if(rc.senseNearbyRobots(3.5f,rc.getTeam())[0].getType() == rc.getType()){
+            derpderp = derpderp  + 1;
+            if (derpderp == 33){
+                derpderp = 0;
+                isLocationFound = true;
+                buildCell();
+
+            }
         }
     }
 

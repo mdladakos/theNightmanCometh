@@ -29,9 +29,9 @@ public class AnchorArchon extends Pathable{
             //this should only happen once, and is therefore outside of the while loop
             getTransmissionID();
 
-            center = getAverageLocation(rc.getInitialArchonLocations(rc.getTeam().opponent()));
-            MapLocation target = center;
-            rc.setIndicatorLine(rc.getLocation(), target, 0,0,0);
+                center = attemptFindCenter();
+                MapLocation endDest = rc.getLocation().subtract(rc.getLocation().directionTo(center), rc.getType().strideRadius*10);
+                rc.setIndicatorLine(rc.getLocation(), endDest, 0, 0, 0);
 
             while (mission == MISSION_NUMBER) {
                 //Every turn, check to see if the mission is updated,
@@ -42,7 +42,12 @@ public class AnchorArchon extends Pathable{
                 //It is currently expected that the archon will not move or move very little
                 //He will spawn a couple gardeners that will be mechanics and spawn a scout
                 //and lumberjacks. Then tree cells will be spawned and built around the archon.
+                rc.broadcastFloat(9998,center.x);
+                rc.broadcastFloat(9999,center.y);
 
+                if (rc.canHireGardener(rc.getLocation().directionTo(center).opposite()) && rc.getTeamBullets() > 200) {
+                    rc.hireGardener(rc.getLocation().directionTo(center).opposite());
+                }
                 Clock.yield();
             }
 
@@ -89,14 +94,16 @@ public class AnchorArchon extends Pathable{
         if (alliedAverage.x == enemyAverage.x) {
             //If our X's match, then it's a horizontal reflection and we know the map's Y-axis midpoint
             centerY = potentialCenter.y;
+            centerX = enemyAverage.x;
         }
 
-        if (alliedAverage.y == enemyAverage.y){
+        if (alliedAverage.y == enemyAverage.y) {
             //If our Y's match, then it's a vertical reflection and know the map's X-axis midpoint
             centerX = potentialCenter.x;
+            centerY = enemyAverage.y;
         }
 
-        if(alliedAverage.x != enemyAverage.x && alliedAverage.y != enemyAverage.y) {
+        if (alliedAverage.x != enemyAverage.x && alliedAverage.y != enemyAverage.y) {
             //If neither values match, then it is a diagonal reflection and we know the maps true center.
             centerY = potentialCenter.y;
             centerX = potentialCenter.x;
@@ -105,7 +112,7 @@ public class AnchorArchon extends Pathable{
         return center = new MapLocation(centerX, centerY);
     }
 
-    private MapLocation getAverageLocation(MapLocation[] locations){
+    private MapLocation getAverageLocation(MapLocation[] locations) {
 
         //initialize
         float x = 0;
@@ -130,5 +137,4 @@ public class AnchorArchon extends Pathable{
 
         return getAverageLocation(new MapLocation[]{location1, location2});
     }
-
 }

@@ -16,8 +16,8 @@ public abstract class Pathable {
     private int CHECKS_PER_SIDE = 100;
 
     private MapLocation start;
-    private MapLocation dest;
-    private MapLocation current;
+    private Float traceStartDist;
+    private MapLocation dest = rc.getLocation();
     private Direction mLine;
     private boolean isTracing;
 
@@ -34,11 +34,9 @@ public abstract class Pathable {
     public void path(MapLocation dest) throws GameActionException {
 
         //reset values if the destination passed in is different than the one stored
-        if(dest!= this.dest) {
+        if(!this.dest.equals(dest)) {
             isTracing = false; //if there's a new destination, ditch tracing
             this.dest = dest; //set the new destination
-            start = rc.getLocation(); //set the new start
-            mLine = start.directionTo(dest); //set the new mLine
         }
 
         //if tracing, continue to trace. Otherwise, following moving rules
@@ -47,9 +45,11 @@ public abstract class Pathable {
         }else {
             if (rc.canMove(dest)) {
                 rc.move(dest);
-                current = rc.getLocation();
             }else{
+                start = rc.getLocation(); //set the new start
+                mLine = start.directionTo(dest); //set the new mLine
                 isTracing=true;
+                traceStartDist = rc.getLocation().distanceTo(dest);
                 trace();
             }
         }
@@ -60,11 +60,11 @@ public abstract class Pathable {
     private void trace() throws GameActionException {
 
         //Direction from the current location to the destination
-        Direction cLine = current.directionTo(dest);
+        Direction cLine = rc.getLocation().directionTo(dest);
         //The radians between mLine and cLine. Positive values are to the "left".
         float deviation = mLine.radiansBetween(cLine);
 
-        Direction retVal = current.directionTo(dest);
+        Direction retVal = rc.getLocation().directionTo(dest);
         int currentCheck = 0;
         boolean firstNoFound = false;
         boolean canMove = false;
@@ -75,8 +75,7 @@ public abstract class Pathable {
 
                 //If deviation is less than 0, it means we turned left and should continue doing so
                 if (deviation <= 0) {
-                    System.out.println("Checking left: "+cLine.rotateLeftRads(TRACING_PATH_OFFSET*currentCheck));
-
+//                    System.out.println("Checking left: "+cLine.rotateLeftRads(TRACING_PATH_OFFSET*currentCheck));
                     if (rc.canMove(cLine.rotateLeftRads(TRACING_PATH_OFFSET * currentCheck))) {
                         retVal = cLine.rotateLeftRads(TRACING_PATH_OFFSET * currentCheck);
                         canMove = true; // flag for if
@@ -84,13 +83,13 @@ public abstract class Pathable {
                         //we should fail at least once before accepting the direction
                         firstNoFound = true;
                         canMove = false;
-                        System.out.println("Got first no!");
+//                        System.out.println("Got first no!");
                     }
                 }
 
                 // If deviation is greater than 0, it means we turned right and should continue doing so
                 if (deviation >= 0) {
-                    System.out.println("Checking right: "+cLine.rotateRightRads(TRACING_PATH_OFFSET*currentCheck));
+//                    System.out.println("Checking right: "+cLine.rotateRightRads(TRACING_PATH_OFFSET*currentCheck));
                     if (rc.canMove(cLine.rotateRightRads(TRACING_PATH_OFFSET * currentCheck))) {
                         retVal = cLine.rotateRightRads(TRACING_PATH_OFFSET * currentCheck);
                         canMove = true; //flag for if
@@ -98,7 +97,7 @@ public abstract class Pathable {
                         //we should fail at least once before accepting the direction
                         canMove = false;
                         firstNoFound = true;
-                        System.out.println("Got first no!");
+//                        System.out.println("Got first no!");
                     }
                 }
 
@@ -113,13 +112,18 @@ public abstract class Pathable {
                     didMove = true;
                 } else if((deviation*check)<0) {
                     float dist = distToMLine(cLine, future);
+                    System.out.println("dist = " + dist);
                     rc.move(retVal, dist);
                     didMove=true;
-                    isTracing = false;
+                    if(rc.getLocation().distanceTo(dest) < traceStartDist) {
+                        isTracing = false;
+                    }
                 } else if((deviation*check)==0){
                     rc.move(retVal);
                     didMove = true;
-                    isTracing = false;
+                    if(rc.getLocation().distanceTo(dest) < traceStartDist) {
+                        isTracing = false;
+                    }
                 }
             }
 
@@ -154,7 +158,18 @@ public abstract class Pathable {
         float A = Math.abs(cLine.degreesBetween(rc.getLocation().directionTo(future)));
         float B = Math.abs(mLine.degreesBetween(cLine));
         float C = 180 - (A + B);
+
+        //check for reverse mLine (caused by going beyond goal)
+        if((A+B+C)!= 180){
+            B = 180 - B;
+            C = 180 - (A+B);
+        }
+
+
+        System.out.println("A+B+C="+(A+B+C));
+
+
         //return b
-        return (float)((c/Math.sin(C))*(Math.sin(B)));
+        return Math.abs((float)((c/Math.sin(C))*(Math.sin(B))));
     }
 }
