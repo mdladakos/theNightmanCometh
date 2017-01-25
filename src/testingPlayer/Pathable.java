@@ -3,6 +3,7 @@ package testingPlayer;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
+import battlecode.common.RobotType;
 
 import static testingPlayer.RobotPlayer.rc;
 
@@ -12,7 +13,7 @@ import static testingPlayer.RobotPlayer.rc;
  */
 public abstract class Pathable {
 
-    private float TRACING_PATH_OFFSET = 6.2831855f/ 100;
+    private float TRACING_PATH_OFFSET = 6.2831855f / 100;
     private int CHECKS_PER_SIDE = 100;
 
     private MapLocation start;
@@ -28,13 +29,14 @@ public abstract class Pathable {
      * tracing the perimeter or objects in its path until it intersects with the straight line again.
      * It then follows the straight line to the path.
      * If no legal path is found, will stand still.
+     *
      * @param dest the final location to attempt to reach
      * @throws GameActionException - most likely due to attempting an illegal move
      */
     public void path(MapLocation dest) throws GameActionException {
 
         //reset values if the destination passed in is different than the one stored
-        if(!this.dest.equals(dest)) {
+        if (!this.dest.equals(dest)) {
             isTracing = false; //if there's a new destination, ditch tracing
             this.dest = dest; //set the new destination
             start = rc.getLocation(); //set the new start
@@ -44,11 +46,11 @@ public abstract class Pathable {
         //if tracing, continue to trace. Otherwise, following moving rules
         if (isTracing) {
             trace();
-        }else {
+        } else {
             if (rc.canMove(dest)) {
                 rc.move(dest);
-            }else{
-                isTracing=true;
+            } else {
+                isTracing = true;
                 traceStartDist = rc.getLocation().distanceTo(dest);
                 trace();
             }
@@ -64,6 +66,10 @@ public abstract class Pathable {
         //The radians between mLine and cLine. Positive values are to the "left".
         float deviation = mLine.radiansBetween(cLine);
 
+        if (rc.getType() == RobotType.GARDENER) {
+            deviation = 1;
+        }
+
         Direction retVal = rc.getLocation().directionTo(dest);
         int currentCheck = 0;
         boolean firstNoFound = false;
@@ -71,67 +77,75 @@ public abstract class Pathable {
         boolean didMove = false;
 
         System.out.println("Deviation = " + deviation);
-        while(currentCheck<=CHECKS_PER_SIDE && !didMove) {
+        while (currentCheck <= CHECKS_PER_SIDE && !didMove) {
 
-                //If deviation is less than 0, it means we turned left and should continue doing so
-                if (deviation <= 0) {
-                    System.out.println("Checking left: "+cLine.rotateLeftRads(TRACING_PATH_OFFSET*currentCheck));
+            //If deviation is less than 0, it means we turned left and should continue doing so
+            if (deviation <= 0) {
+                System.out.println("Checking left: " + cLine.rotateLeftRads(TRACING_PATH_OFFSET * currentCheck));
 
-                    if (rc.canMove(cLine.rotateLeftRads(TRACING_PATH_OFFSET * currentCheck))) {
-                        retVal = cLine.rotateLeftRads(TRACING_PATH_OFFSET * currentCheck);
-                        canMove = true; // flag for if
-                    }else{
-                        //we should fail at least once before accepting the direction
-                        firstNoFound = true;
-                        canMove = false;
-                        System.out.println("Got first no!");
-                    }
+                if (rc.canMove(cLine.rotateLeftRads(TRACING_PATH_OFFSET * currentCheck))) {
+                    retVal = cLine.rotateLeftRads(TRACING_PATH_OFFSET * currentCheck);
+                    canMove = true; // flag for if
+                } else {
+                    //we should fail at least once before accepting the direction
+                    firstNoFound = true;
+                    canMove = false;
+                    System.out.println("Got first no!");
                 }
+            }
 
-                // If deviation is greater than 0, it means we turned right and should continue doing so
-                if (deviation >= 0) {
-                    System.out.println("Checking right: "+cLine.rotateRightRads(TRACING_PATH_OFFSET*currentCheck));
-                    if (rc.canMove(cLine.rotateRightRads(TRACING_PATH_OFFSET * currentCheck))) {
-                        retVal = cLine.rotateRightRads(TRACING_PATH_OFFSET * currentCheck);
-                        canMove = true; //flag for if
-                    }else{
-                        //we should fail at least once before accepting the direction
-                        canMove = false;
-                        firstNoFound = true;
-                        System.out.println("Got first no!");
-                    }
+            // If deviation is greater than 0, it means we turned right and should continue doing so
+            if (deviation >= 0) {
+                System.out.println("Checking right: " + cLine.rotateRightRads(TRACING_PATH_OFFSET * currentCheck));
+                if (rc.canMove(cLine.rotateRightRads(TRACING_PATH_OFFSET * currentCheck))) {
+                    retVal = cLine.rotateRightRads(TRACING_PATH_OFFSET * currentCheck);
+                    canMove = true; //flag for if
+                } else {
+                    //we should fail at least once before accepting the direction
+                    canMove = false;
+                    firstNoFound = true;
+                    System.out.println("Got first no!");
                 }
+            }
 
-                if(firstNoFound&&canMove){
+            if (firstNoFound && canMove) {
                 //determine future location
-                MapLocation future = rc.getLocation().add(retVal,rc.getType().strideRadius);
+                MapLocation future = rc.getLocation().add(retVal, rc.getType().strideRadius);
                 //get future location deviation
                 float check = mLine.degreesBetween(future.directionTo(dest));
 
-                if((deviation*check)>0) {
+                if ((rc.getType() != RobotType.GARDENER)|| rc.senseNearbyRobots(3.5f,rc.getTeam())[0].getType() != RobotType.GARDENER){
+                    if ((deviation * check) > 0) {
+                        rc.move(retVal);
+                        didMove = true;
+                    } else if ((deviation * check) < 0) {
+                        float dist = distToMLine(cLine, future);
+                        rc.move(retVal, dist);
+                        didMove = true;
+                        if (rc.getLocation().distanceTo(dest) < traceStartDist) {
+                            isTracing = false;
+                            System.out.println("tracing false");
+                        }
+                    } else if ((deviation * check) == 0) {
+                        rc.move(retVal);
+                        didMove = true;
+                        if (rc.getLocation().distanceTo(dest) < traceStartDist) {
+                            isTracing = false;
+                            System.out.println("tracing false");
+                        }
+                    }
+                } else {
                     rc.move(retVal);
                     didMove = true;
-                } else if((deviation*check)<0) {
-                    float dist = distToMLine(cLine, future);
-                    rc.move(retVal, dist);
-                    didMove=true;
-                    if(rc.getLocation().distanceTo(dest) < traceStartDist) {
-                        isTracing = false;
-                    }
-                } else if((deviation*check)==0){
-                    rc.move(retVal);
-                    didMove = true;
-                    if(rc.getLocation().distanceTo(dest) < traceStartDist) {
-                        isTracing = false;
-                    }
                 }
             }
+
 
             // No move performed, try slightly further
             currentCheck++;
         }
-
     }
+
 
     private float distToMLine(Direction cLine, MapLocation future){
          /* We need to calculate the value of b below. We will use the triangle

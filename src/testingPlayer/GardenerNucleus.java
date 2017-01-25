@@ -100,9 +100,9 @@ public class GardenerNucleus extends Pathable {
 
         }
 
-        if(rc.senseNearbyRobots(3f,rc.getTeam())[0].getType() == rc.getType()){
+        if(rc.senseNearbyRobots(3.5f,rc.getTeam())[0].getType() == rc.getType()){
             derpderp = derpderp  + 1;
-            if (derpderp == 30){
+            if (derpderp == 35){
                 derpderp = 0;
                 isLocationFound = true;
                 buildCell();
