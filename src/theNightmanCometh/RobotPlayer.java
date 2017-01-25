@@ -1,7 +1,7 @@
-package testingPlayer;
+package theNightmanCometh;
 import battlecode.common.*;
 
-import static testingPlayer.Mission.*;
+import static theNightmanCometh.Mission.*;
 import java.lang.Math;
 
 public strictfp class RobotPlayer {

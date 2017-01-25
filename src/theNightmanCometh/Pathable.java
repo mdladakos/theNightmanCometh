@@ -1,10 +1,10 @@
-package testingPlayer;
+package theNightmanCometh;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 
-import static testingPlayer.RobotPlayer.rc;
+import static theNightmanCometh.RobotPlayer.rc;
 
 /**
  * If you want something to have access to Pathing, simply have it extend Pathable in the class declaration.

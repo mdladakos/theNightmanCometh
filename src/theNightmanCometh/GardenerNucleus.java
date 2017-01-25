@@ -1,9 +1,8 @@
-package testingPlayer;
+package theNightmanCometh;
 
 import battlecode.common.*;
 
-import static testingPlayer.RobotPlayer.*;
-import java.util.Map;
+import static theNightmanCometh.RobotPlayer.*;
 
 /**
  * Created by Demetri on 1/15/2017.

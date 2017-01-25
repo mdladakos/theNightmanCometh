@@ -1,12 +1,11 @@
-package testingPlayer;
+package theNightmanCometh;
 
 import battlecode.common.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static testingPlayer.RobotPlayer.randomDirection;
-import static testingPlayer.RobotPlayer.tryMove;
+import static theNightmanCometh.RobotPlayer.tryMove;
 
 
 /**

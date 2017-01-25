@@ -1,8 +1,8 @@
-package testingPlayer;
+package theNightmanCometh;
 
 import battlecode.common.*;
 
-import static testingPlayer.RobotPlayer.trollToll;
+import static theNightmanCometh.RobotPlayer.trollToll;
 
 public class Lumberjack extends Pathable{
 
