@@ -13,6 +13,7 @@ public class AnchorArchon extends Pathable{
 
     private RobotController rc;
     private MapLocation center;
+    private float CLEAR_SPACE = 3.5f;
     private int MISSION_NUMBER = Mission.ANCHOR_ARCHON.missionNum;
 
     public AnchorArchon(RobotController rc){
@@ -36,6 +37,7 @@ public class AnchorArchon extends Pathable{
                 //Every turn, check to see if the mission is updated,
                 //but the robot won't change behavior for a turn
                 updateMission();
+                checkEdge();
 
                 //It is currently expected that the archon will not move or move very little
                 //He will spawn a couple gardeners that will be mechanics and spawn a scout
@@ -44,8 +46,30 @@ public class AnchorArchon extends Pathable{
                 Clock.yield();
             }
 
-        }catch(GameActionException e){
+        }catch(Exception e){
             e.printStackTrace();
+        }
+    }
+
+    private void checkEdge() throws GameActionException {
+
+        if(!rc.onTheMap(rc.getLocation(), CLEAR_SPACE)){
+            System.out.println("checking edge!");
+            MapLocation dest = rc.getLocation();
+            Direction[] cardinals = new Direction[]{Direction.EAST,
+                    Direction.NORTH,
+                    Direction.SOUTH,
+                    Direction.WEST};
+
+            for(Direction dir : cardinals){
+                if (!rc.onTheMap(rc.getLocation().add(dir, CLEAR_SPACE))){
+                    dest = dest.subtract(dir);
+                }
+            }
+
+            if(rc.canMove(dest)){
+                path(dest);
+            }
         }
     }
 
