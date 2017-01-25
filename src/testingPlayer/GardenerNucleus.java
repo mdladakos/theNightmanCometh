@@ -2,13 +2,15 @@ package testingPlayer;
 
 import battlecode.common.*;
 
+import java.util.Map;
+
 import static testingPlayer.RobotPlayer.randomDirection;
 import static testingPlayer.RobotPlayer.tryMove;
 
 /**
  * Created by Demetri on 1/15/2017.
  */
-public class GardenerNucleus {
+public class GardenerNucleus extends Pathable {
 
     private int NUM_CELL_TREES = 6; //Number of trees to surround the gardener in a tree cell,
     //the float value below is used instead of 2pi because that is the value used to transform the radians within the Direction constructor
@@ -16,6 +18,7 @@ public class GardenerNucleus {
 
     private RobotController rc;
     private boolean isLocationFound = false;
+    private int derpderp;
 
     public GardenerNucleus(RobotController rc){
         this.rc = rc;
@@ -26,15 +29,30 @@ public class GardenerNucleus {
 
         TreeInfo[] sensedTrees = null;
         System.out.println("I'm a gardener!");
+        int numberLumber=0;
+        float centerX = 0;
+        float centerY = 0;
+
+        try {
+            centerX = rc.readBroadcastFloat(9998);
+            centerY = rc.readBroadcastFloat(9999);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        MapLocation center = new MapLocation (centerX, centerY);
+        MapLocation anchor = rc.getInitialArchonLocations(rc.getTeam())[0].add(rc.getInitialArchonLocations(rc.getTeam())[0].directionTo(center),(float)5.5);
+
         // Testing git commands
         // The code you want your robot to perform every round should be in this loop
         while (true) {
 
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
             try {
-                if(rc.senseNearbyTrees()!= null && rc.canBuildRobot(RobotType.LUMBERJACK, randomDirection()))
-                    rc.buildRobot(RobotType.LUMBERJACK,randomDirection());
-
+                if(rc.senseNearbyTrees(rc.getType().sensorRadius,Team.NEUTRAL).length > numberLumber && rc.canBuildRobot(RobotType.LUMBERJACK, randomDirection())) {
+                    rc.buildRobot(RobotType.LUMBERJACK, randomDirection());
+                    numberLumber++;
+                }
 
                 // Determine if current location can hold a tree cell
                 if(isLocationFound) {
@@ -44,14 +62,15 @@ public class GardenerNucleus {
                     }
 
                 } else{
-                    // Move randomly
-                    tryMove(randomDirection());
+                    path(anchor);
                     testLocation();
                 }
 
                 if(sensedTrees != null) {
                     waterTreeCell(sensedTrees);
+
                 }
+
             } catch (Exception e) {
                 System.out.println("Gardener Exception");
                 e.printStackTrace();
@@ -75,9 +94,20 @@ public class GardenerNucleus {
             }
         }
 
-        if(suitableLocation== NUM_CELL_TREES){
+        if(suitableLocation== NUM_CELL_TREES && rc.getLocation().distanceTo(rc.getInitialArchonLocations(rc.getTeam())[0]) > 5){
             isLocationFound = true;
             buildCell();
+
+        }
+
+        if(rc.senseNearbyRobots(3f,rc.getTeam())[0].getType() == rc.getType()){
+            derpderp = derpderp  + 1;
+            if (derpderp == 30){
+                derpderp = 0;
+                isLocationFound = true;
+                buildCell();
+
+            }
         }
     }
 

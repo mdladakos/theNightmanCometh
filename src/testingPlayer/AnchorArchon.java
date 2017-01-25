@@ -25,17 +25,13 @@ public class AnchorArchon extends Pathable {
                 MapLocation endDest = rc.getLocation().subtract(rc.getLocation().directionTo(center), rc.getType().strideRadius*10);
                 rc.setIndicatorLine(rc.getLocation(), endDest, 0, 0, 0);
 
-                while (rc.getRoundNum() <= 10) {
-                    //go near corner
-                    if(rc.onTheMap(rc.getLocation(),(float)3))
-                    path(endDest);
-                    //create gardeners
+                rc.broadcastFloat(9998,center.x);
+                rc.broadcastFloat(9999,center.y);
 
-                    Clock.yield();
+                if (rc.canHireGardener(rc.getLocation().directionTo(center).opposite()) && rc.getTeamBullets() > 200) {
+                    rc.hireGardener(rc.getLocation().directionTo(center).opposite());
                 }
-                if (rc.canHireGardener(rc.getLocation().directionTo(center))) {
-                    rc.hireGardener(rc.getLocation().directionTo(center));
-                }
+                Clock.yield();
             }
         }
         catch(Exception e){
@@ -59,11 +55,13 @@ public class AnchorArchon extends Pathable {
         if (alliedAverage.x == enemyAverage.x) {
             //If our X's match, then it's a horizontal reflection and we know the map's Y-axis midpoint
             centerY = potentialCenter.y;
+            centerX = enemyAverage.x;
         }
 
         if (alliedAverage.y == enemyAverage.y) {
             //If our Y's match, then it's a vertical reflection and know the map's X-axis midpoint
             centerX = potentialCenter.x;
+            centerY = enemyAverage.y;
         }
 
         if (alliedAverage.x != enemyAverage.x && alliedAverage.y != enemyAverage.y) {

@@ -16,6 +16,7 @@ public abstract class Pathable {
     private int CHECKS_PER_SIDE = 100;
 
     private MapLocation start;
+    private Float traceStartDist;
     private MapLocation dest = rc.getLocation();
     private Direction mLine;
     private boolean isTracing;
@@ -48,6 +49,7 @@ public abstract class Pathable {
                 rc.move(dest);
             }else{
                 isTracing=true;
+                traceStartDist = rc.getLocation().distanceTo(dest);
                 trace();
             }
         }
@@ -113,11 +115,15 @@ public abstract class Pathable {
                     float dist = distToMLine(cLine, future);
                     rc.move(retVal, dist);
                     didMove=true;
-                    isTracing = false;
+                    if(rc.getLocation().distanceTo(dest) < traceStartDist) {
+                        isTracing = false;
+                    }
                 } else if((deviation*check)==0){
                     rc.move(retVal);
                     didMove = true;
-                    isTracing = false;
+                    if(rc.getLocation().distanceTo(dest) < traceStartDist) {
+                        isTracing = false;
+                    }
                 }
             }
 

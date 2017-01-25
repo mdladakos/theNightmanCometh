@@ -19,7 +19,7 @@ public class Lumberjack extends Pathable{
 
 
             try {
-                if (rc.senseNearbyTrees().length > 0) {
+                if (rc.senseNearbyTrees(rc.getType().sensorRadius,Team.NEUTRAL).length > 0) {
                     target = rc.senseNearbyTrees(rc.getType().sensorRadius,Team.NEUTRAL)[0].getLocation();
                 }
                 else {
