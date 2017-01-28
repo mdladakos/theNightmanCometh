@@ -20,6 +20,7 @@ public abstract class Pathable {
     private MapLocation dest = rc.getLocation();
     private Direction mLine;
     private boolean isTracing;
+    private boolean spin = false;
 
     //TODO: protect against loops by not attaching to mLine if further away than before
 
@@ -43,6 +44,7 @@ public abstract class Pathable {
 
         //if tracing, continue to trace. Otherwise, following moving rules
         if (isTracing) {
+            spin = false;
             trace();
         }else {
             if (rc.canMove(dest)) {
@@ -77,11 +79,12 @@ public abstract class Pathable {
         while(currentCheck<=CHECKS_PER_SIDE && !didMove) {
 
                 //If deviation is less than 0, it means we turned left and should continue doing so
-                if (deviation <= 0) {
+                if (deviation <= 0 && !spin) {
 //                    System.out.println("Checking left: "+cLine.rotateLeftRads(TRACING_PATH_OFFSET*currentCheck));
                     if (rc.canMove(cLine.rotateLeftRads(TRACING_PATH_OFFSET * currentCheck))) {
                         retVal = cLine.rotateLeftRads(TRACING_PATH_OFFSET * currentCheck);
                         canMove = true; // flag for if
+                        spin = true;
                     }else{
                         //we should fail at least once before accepting the direction
                         firstNoFound = true;
@@ -91,11 +94,12 @@ public abstract class Pathable {
                 }
 
                 // If deviation is greater than 0, it means we turned right and should continue doing so
-                if (deviation >= 0) {
+                if (deviation >= 0 && !spin) {
 //                    System.out.println("Checking right: "+cLine.rotateRightRads(TRACING_PATH_OFFSET*currentCheck));
                     if (rc.canMove(cLine.rotateRightRads(TRACING_PATH_OFFSET * currentCheck))) {
                         retVal = cLine.rotateRightRads(TRACING_PATH_OFFSET * currentCheck);
                         canMove = true; //flag for if
+                        spin = true;
                     }else{
                         //we should fail at least once before accepting the direction
                         canMove = false;
