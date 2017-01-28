@@ -135,6 +135,11 @@ public abstract class Pathable {
             currentCheck++;
         }
 
+        if(!didMove && !firstNoFound){
+            isTracing=false;
+            rc.move(dest);
+        }
+
     }
 
     private float distToMLine(Direction cLine, MapLocation future){

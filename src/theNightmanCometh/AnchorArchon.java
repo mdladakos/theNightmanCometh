@@ -13,6 +13,7 @@ public class AnchorArchon extends Pathable{
     private MapLocation center;
     private float CLEAR_SPACE = 4.5f;
     private int MISSION_NUMBER = Mission.ANCHOR_ARCHON.missionNum;
+    private int gardenerTimer = 0;
 
     public AnchorArchon(RobotController rc){
         this.rc = rc;
@@ -45,6 +46,7 @@ public class AnchorArchon extends Pathable{
 
                 if (rc.canHireGardener(rc.getLocation().directionTo(center).opposite()) && rc.getTeamBullets() > 200) {
                     rc.hireGardener(rc.getLocation().directionTo(center).opposite());
+                    gardenerTimer = rc.getRoundNum();
                 }
 
                 //donate method at the end of each robot's turn
