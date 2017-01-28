@@ -66,9 +66,14 @@ public class GardenerNucleus extends Pathable {
                     if(rc.canBuildRobot(RobotType.LUMBERJACK, dir)){
                         rc.canBuildRobot(RobotType.LUMBERJACK, dir);
                         numberLumber++;
-                    }else if(rc.canBuildRobot(RobotType.LUMBERJACK, randomDirection())){
-                        rc.buildRobot(RobotType.LUMBERJACK, randomDirection());
-                        numberLumber++;
+                    }else{
+                        for(int i = 0; i < 10; i++ ) {
+                            Direction dir2 = randomDirection();
+                            if (rc.canBuildRobot(RobotType.LUMBERJACK, dir2)) {
+                                rc.buildRobot(RobotType.LUMBERJACK, dir2);
+                                numberLumber++;
+                            }
+                        }
                     }
                 }
 

@@ -33,6 +33,8 @@ public abstract class Pathable {
      */
     public void path(MapLocation dest) throws GameActionException {
 
+        rc.setIndicatorLine(rc.getLocation(), dest, 100,0,0);
+
         //reset values if the destination passed in is different than the one stored
         if(!this.dest.equals(dest)) {
             isTracing = false; //if there's a new destination, ditch tracing
@@ -133,6 +135,11 @@ public abstract class Pathable {
 
             // No move performed, try slightly further
             currentCheck++;
+        }
+        rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(retVal), 0,100,0);
+        if(!didMove && !firstNoFound){
+            isTracing=false;
+            rc.move(dest);
         }
 
     }
