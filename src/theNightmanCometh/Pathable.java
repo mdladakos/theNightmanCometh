@@ -20,6 +20,7 @@ public abstract class Pathable {
     private MapLocation dest = rc.getLocation();
     private Direction mLine;
     private boolean isTracing;
+    private Spin spin = new Spin();
 
     //TODO: protect against loops by not attaching to mLine if further away than before
 
@@ -39,6 +40,7 @@ public abstract class Pathable {
         if(!this.dest.equals(dest)) {
             isTracing = false; //if there's a new destination, ditch tracing
             this.dest = dest; //set the new destination
+            spin.setSpin(Spin.Turn.BOTH);
         }
 
         //if tracing, continue to trace. Otherwise, following moving rules
@@ -72,18 +74,21 @@ public abstract class Pathable {
         boolean firstNoFound = false;
         boolean canMove = false;
         boolean didMove = false;
-        boolean spin = false;
 
+        rc.setIndicatorLine(start, dest, 6,68,48);
+        rc.setIndicatorLine(rc.getLocation(), dest, 90, 110, 32);
         System.out.println("Deviation = " + deviation);
+        System.out.println("Spin = " + spin.spin.name());
         while(currentCheck<=CHECKS_PER_SIDE && !didMove) {
 
                 //If deviation is less than 0, it means we turned left and should continue doing so
-                if (deviation <= 0 && !spin) {
-//                    System.out.println("Checking left: "+cLine.rotateLeftRads(TRACING_PATH_OFFSET*currentCheck));
+//                if (deviation <= 0 && spin.turnLeft()) {
+                    if (spin.turnLeft()) {
+                   rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(cLine.rotateLeftRads(TRACING_PATH_OFFSET*currentCheck)), 248, 60, 100);
                     if (rc.canMove(cLine.rotateLeftRads(TRACING_PATH_OFFSET * currentCheck))) {
                         retVal = cLine.rotateLeftRads(TRACING_PATH_OFFSET * currentCheck);
                         canMove = true; // flag for if
-                        spin = true;
+                        spin.setSpin(Spin.Turn.LEFT);
                     }else{
                         //we should fail at least once before accepting the direction
                         firstNoFound = true;
@@ -93,12 +98,13 @@ public abstract class Pathable {
                 }
 
                 // If deviation is greater than 0, it means we turned right and should continue doing so
-                if (deviation >= 0 && !spin) {
-//                    System.out.println("Checking right: "+cLine.rotateRightRads(TRACING_PATH_OFFSET*currentCheck));
+//                if (deviation >= 0 && spin.turnRight()) {
+                    if (spin.turnRight()) {
+                    rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(cLine.rotateLeftRads(TRACING_PATH_OFFSET*currentCheck)), 248, 60, 100);
                     if (rc.canMove(cLine.rotateRightRads(TRACING_PATH_OFFSET * currentCheck))) {
                         retVal = cLine.rotateRightRads(TRACING_PATH_OFFSET * currentCheck);
                         canMove = true; //flag for if
-                        spin = true;
+                        spin.setSpin(Spin.Turn.RIGHT);
                     }else{
                         //we should fail at least once before accepting the direction
                         canMove = false;
@@ -112,6 +118,7 @@ public abstract class Pathable {
                 MapLocation future = rc.getLocation().add(retVal,rc.getType().strideRadius);
                 //get future location deviation
                 float check = mLine.degreesBetween(future.directionTo(dest));
+                rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(retVal), 255,255,255);
 
                 if((deviation*check)>0) {
                     rc.move(retVal);
@@ -138,9 +145,9 @@ public abstract class Pathable {
 
             // No move performed, try slightly further
             currentCheck++;
-            System.out.println(currentCheck);
+
         }
-        rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(retVal), 0,100,0);
+        System.out.println(currentCheck);
 
         if(!didMove && !firstNoFound && rc.canMove(dest)){
             isTracing=false;
@@ -187,5 +194,24 @@ public abstract class Pathable {
 
         //return b
         return Math.abs((float)((c/Math.sin(C))*(Math.sin(B))));
+    }
+
+    public static class Spin {
+
+        enum Turn {LEFT, RIGHT, BOTH;}
+
+        Turn spin = Turn.BOTH;
+
+        public boolean turnRight(){
+            return spin == Turn.BOTH || spin == Turn.RIGHT;
+        }
+
+        public boolean turnLeft(){
+            return spin == Turn.BOTH || spin == Turn.LEFT;
+        }
+
+        public void setSpin(Turn spin){
+            this.spin = spin;
+        }
     }
 }

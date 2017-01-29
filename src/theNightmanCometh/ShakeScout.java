@@ -60,7 +60,7 @@ public class ShakeScout extends Pathable{
 //                        rc.donate(100);
 //                    }
 
-//                    // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
+//                    // Clock.yield() makes the robot wait until the next spin, then it will perform this loop again
 //                    Clock.yield();
 //
 //                } else {

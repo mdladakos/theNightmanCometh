@@ -40,7 +40,7 @@ public class Lumberjack extends Pathable{
                     path(target);
                 }
 
-                //donate method at the end of each turn
+                //donate method at the end of each spin
                 trollToll();
                 Clock.yield();
             }
