@@ -33,6 +33,8 @@ public abstract class Pathable {
      */
     public void path(MapLocation dest) throws GameActionException {
 
+        rc.setIndicatorLine(rc.getLocation(), dest, 100,0,0);
+
         //reset values if the destination passed in is different than the one stored
         if(!this.dest.equals(dest)) {
             isTracing = false; //if there's a new destination, ditch tracing
@@ -70,16 +72,18 @@ public abstract class Pathable {
         boolean firstNoFound = false;
         boolean canMove = false;
         boolean didMove = false;
+        boolean spin = false;
 
         System.out.println("Deviation = " + deviation);
         while(currentCheck<=CHECKS_PER_SIDE && !didMove) {
 
                 //If deviation is less than 0, it means we turned left and should continue doing so
-                if (deviation <= 0) {
+                if (deviation <= 0 && !spin) {
 //                    System.out.println("Checking left: "+cLine.rotateLeftRads(TRACING_PATH_OFFSET*currentCheck));
                     if (rc.canMove(cLine.rotateLeftRads(TRACING_PATH_OFFSET * currentCheck))) {
                         retVal = cLine.rotateLeftRads(TRACING_PATH_OFFSET * currentCheck);
                         canMove = true; // flag for if
+                        spin = true;
                     }else{
                         //we should fail at least once before accepting the direction
                         firstNoFound = true;
@@ -89,11 +93,12 @@ public abstract class Pathable {
                 }
 
                 // If deviation is greater than 0, it means we turned right and should continue doing so
-                if (deviation >= 0) {
+                if (deviation >= 0 && !spin) {
 //                    System.out.println("Checking right: "+cLine.rotateRightRads(TRACING_PATH_OFFSET*currentCheck));
                     if (rc.canMove(cLine.rotateRightRads(TRACING_PATH_OFFSET * currentCheck))) {
                         retVal = cLine.rotateRightRads(TRACING_PATH_OFFSET * currentCheck);
                         canMove = true; //flag for if
+                        spin = true;
                     }else{
                         //we should fail at least once before accepting the direction
                         canMove = false;
@@ -116,15 +121,15 @@ public abstract class Pathable {
                     System.out.println("dist = " + dist);
                     rc.move(retVal, dist);
                     didMove=true;
-//                    if(rc.getLocation().distanceTo(dest) <= traceStartDist) {
+                    if(rc.getLocation().distanceTo(dest) <= traceStartDist) {
                         isTracing = false;
-//                    }
+                    }
                 } else if(check==0){
                     rc.move(retVal);
                     didMove = true;
-//                    if(rc.getLocation().distanceTo(dest) <= traceStartDist) {
+                    if(rc.getLocation().distanceTo(dest) <= traceStartDist) {
                         isTracing = false;
-//                    }
+                    }
                 } else {
                     rc.move(retVal);
                     didMove=true;
@@ -133,9 +138,11 @@ public abstract class Pathable {
 
             // No move performed, try slightly further
             currentCheck++;
+            System.out.println(currentCheck);
         }
+        rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(retVal), 0,100,0);
 
-        if(!didMove && !firstNoFound){
+        if(!didMove && !firstNoFound && rc.canMove(dest)){
             isTracing=false;
             rc.move(dest);
         }

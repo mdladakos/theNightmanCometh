@@ -32,7 +32,7 @@ public class GardenerNucleus extends Pathable {
         int numberLumber = 0;
         float centerX = 0;
         float centerY = 0;
-        Direction dir = rc.getLocation().directionTo(rc.senseNearbyRobots()[0].getLocation()).opposite();
+        Direction dir;
 
         try {
             centerX = rc.readBroadcastFloat(9998);
@@ -54,27 +54,32 @@ public class GardenerNucleus extends Pathable {
 
                 while (mission == MISSION_NUMBER) {
 //                anchor = rc.getInitialArchonLocations(rc.getTeam())[0].add(rc.getInitialArchonLocations(rc.getTeam())[0].directionTo(center), (float) 5.5);
+
                     if (rc.canSenseRobot(archonId)) {
                         RobotInfo archon = rc.senseRobot(archonId);
                         anchor = archon.getLocation().add(archon.getLocation().directionTo(center), 5.5f);
+                        System.out.println(anchor);
                     }
                     //Every turn, check to see if the mission is updated,
                     //but the robot won't change behavior for a turn
                     updateMission();
                     // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
 
-                    if (rc.senseNearbyTrees(rc.getType().sensorRadius, Team.NEUTRAL).length > numberLumber) {
-                        System.out.println("should be building");
-                        if (rc.canBuildRobot(RobotType.LUMBERJACK, dir)) {
-                            rc.buildRobot(RobotType.LUMBERJACK, dir);
-                            numberLumber++;
-                            System.out.println("first try");
-                        } else if (rc.canBuildRobot(RobotType.LUMBERJACK, dir)) {
-                            rc.buildRobot(RobotType.LUMBERJACK, dir);
-                            numberLumber++;
+                if (rc.senseNearbyTrees(rc.getType().sensorRadius, Team.NEUTRAL).length > numberLumber) {
+                    dir = rc.getLocation().directionTo(rc.senseNearbyRobots()[0].getLocation()).opposite();
+                    if(rc.canBuildRobot(RobotType.LUMBERJACK, dir)){
+                        rc.buildRobot(RobotType.LUMBERJACK, dir);
+                        numberLumber++;
+                    }else{
+                        for(int i = 0; i < 10; i++ ) {
+                            Direction dir2 = randomDirection();
+                            if (rc.canBuildRobot(RobotType.LUMBERJACK, dir2)) {
+                                rc.buildRobot(RobotType.LUMBERJACK, dir2);
+                                numberLumber++;
+                            }
                         }
-
                     }
+                }
 
                     // Determine if current location can hold a tree cell
                     if (isLocationFound) {
@@ -123,6 +128,7 @@ public class GardenerNucleus extends Pathable {
 
         if(suitableLocation== NUM_CELL_TREES && rc.getLocation().distanceTo(rc.getInitialArchonLocations(rc.getTeam())[0]) > 5){
             if(rc.onTheMap(rc.getLocation(),4.5f)) {
+                isLocationFound = true;
                 buildCell();
             }
         }
@@ -141,6 +147,7 @@ public class GardenerNucleus extends Pathable {
             if (derpderp == 3) {
                 derpderp = 0;
                 if(rc.onTheMap(rc.getLocation(),5f)) {
+                    isLocationFound = true;
                     buildCell();
                 }
 
@@ -153,7 +160,6 @@ public class GardenerNucleus extends Pathable {
         boolean didPlant = false;
         int treeNum = 0;
         float treeDirRad = 0;
-        isLocationFound = true;
 
         if(rc.getTeamBullets() >= GameConstants.BULLET_TREE_COST) {
 

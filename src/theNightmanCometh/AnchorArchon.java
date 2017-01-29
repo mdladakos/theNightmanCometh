@@ -11,12 +11,16 @@ public class AnchorArchon extends Pathable{
 
     private RobotController rc;
     private MapLocation center;
-    private float CLEAR_SPACE = 4.5f;
+    private float CLEAR_SPACE = 5f;
     private int MISSION_NUMBER = Mission.ANCHOR_ARCHON.missionNum;
-    private int gardenerTimer = 0;
+    private Direction gardenerDir;
+    private float gardenerDirOffsetRad = (float) (Math.PI/4);
 
     public AnchorArchon(RobotController rc){
         this.rc = rc;
+        this.center = attemptFindCenter();
+        this.gardenerDir = rc.getLocation().directionTo(center).opposite();
+
         mission = MISSION_NUMBER;
         runAnchorArchon();
     }
@@ -28,11 +32,14 @@ public class AnchorArchon extends Pathable{
             //this should only happen once, and is therefore outside of the while loop
             getTransmissionID();
 
-                center = attemptFindCenter();
+
                 MapLocation endDest = rc.getLocation().subtract(rc.getLocation().directionTo(center), rc.getType().strideRadius*10);
                 rc.setIndicatorLine(rc.getLocation(), endDest, 0, 0, 0);
 
             while (mission == MISSION_NUMBER) {
+
+                rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(gardenerDir, 3), 0,0,0);
+
                 //Every turn, check to see if the mission is updated,
                 //but the robot won't change behavior for a turn
                 updateMission();
@@ -44,9 +51,11 @@ public class AnchorArchon extends Pathable{
                 rc.broadcastFloat(9998,center.x);
                 rc.broadcastFloat(9999,center.y);
 
-                if (rc.canHireGardener(rc.getLocation().directionTo(center).opposite()) && rc.getTeamBullets() > 200) {
-                    rc.hireGardener(rc.getLocation().directionTo(center).opposite());
-                    gardenerTimer = rc.getRoundNum();
+                Direction newDir = new Direction((gardenerDir.radians+gardenerDirOffsetRad));
+                rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(newDir, 3), 50,70,10);
+                if (rc.canHireGardener(newDir) && rc.getTeamBullets() >= 150) {
+                    rc.hireGardener(newDir);
+                    gardenerDirOffsetRad = gardenerDirOffsetRad * -1;
                 }
 
                 //donate method at the end of each robot's turn
