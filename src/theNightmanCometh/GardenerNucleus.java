@@ -18,9 +18,11 @@ public class GardenerNucleus extends Pathable {
     private int MISSION_NUMBER=Mission.GARDENER_NUCLEUS.missionNum;
     private int derpderp;
     private MapLocation anchor;
+    int archonId = 0;
 
     public GardenerNucleus(RobotController rc){
         this.rc = rc;
+        anchor = rc.getInitialArchonLocations(rc.getTeam())[0];
         runGardenerNucleus();
     }
 
@@ -45,12 +47,19 @@ public class GardenerNucleus extends Pathable {
         // The code you want your robot to perform every round should be in this loop
 
         // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
-        try {
-            //this should only happen once, and is therefore outside of the while loop
-            getTransmissionID();
-            int archonId = rc.senseNearbyRobots()[0].getID();
 
-            while (mission == MISSION_NUMBER) {
+        //this should only happen once, and is therefore outside of the while loop
+        try {
+            getTransmissionID();
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+        if(rc.senseNearbyRobots()[0].getType() == RobotType.ARCHON) {
+            archonId = rc.senseNearbyRobots()[0].getID();
+        }
+
+        while (mission == MISSION_NUMBER) {
+            try {
 //                anchor = rc.getInitialArchonLocations(rc.getTeam())[0].add(rc.getInitialArchonLocations(rc.getTeam())[0].directionTo(center), (float) 5.5);
                 if(rc.canSenseRobot(archonId)){
                     RobotInfo archon = rc.senseRobot(archonId);
@@ -95,13 +104,15 @@ public class GardenerNucleus extends Pathable {
 
                 //donate method goes at the end of each robot's turn
                 trollToll();
-                // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
-                Clock.yield();
+
+            } catch (Exception e) {
+                System.out.println("Gardener Exception");
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            System.out.println("Gardener Exception");
-            e.printStackTrace();
+            // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
+            Clock.yield();
         }
+
     }
 
 
