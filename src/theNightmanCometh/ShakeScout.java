@@ -14,6 +14,7 @@ import static theNightmanCometh.RobotPlayer.tryMove;
 public class ShakeScout extends Pathable{
 
     private RobotController rc;
+    private MapLocation pathingLoc;
     List<Integer> TREELIST = new ArrayList<>();
 
     public ShakeScout(RobotController rc){
@@ -68,11 +69,46 @@ public class ShakeScout extends Pathable{
 //                    Clock.yield();
 //                }
 
-                path(new MapLocation(601,601));
+                RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().sensorRadius, rc.getTeam().opponent());
+                MapLocation[] enemyLocs = new MapLocation[enemies.length];
+
+                if(enemies.length > 0){
+
+                    int i = 0;
+                    for(RobotInfo enemy: enemies){
+                        enemyLocs[i] = enemy.getLocation();
+                    }
+                    MapLocation avgEnemyLoc = getAverageLocation(enemyLocs);
+                    pathingLoc = rc.getLocation().subtract(rc.getLocation().directionTo(avgEnemyLoc));
+                    path(pathingLoc);
+                }
+
+                Clock.yield();
 
             } catch (Exception e) {
                 System.out.println("Scout Exception!");
+                Clock.yield();
             }
         }
+    }
+
+    private MapLocation getAverageLocation(MapLocation[] locations) {
+
+        //initialize
+        float x = 0;
+        float y = 0;
+
+        //for each location, sum the x and y values
+        for(MapLocation location : locations){
+            x +=location.x;
+            y +=location.y;
+        }
+
+        //average the values by the number of locations
+        x = x/locations.length;
+        y = y/locations.length;
+
+        //return the average location
+        return new MapLocation(x,y);
     }
 }

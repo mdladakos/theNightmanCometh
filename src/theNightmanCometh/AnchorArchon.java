@@ -37,30 +37,41 @@ public class AnchorArchon extends Pathable{
                 rc.setIndicatorLine(rc.getLocation(), endDest, 0, 0, 0);
 
             while (mission == MISSION_NUMBER) {
+                try {
+                    rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(gardenerDir, 3), 0,0,0);
 
-                rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(gardenerDir, 3), 0,0,0);
+                    //Every spin, check to see if the mission is updated,
+                    //but the robot won't change behavior for a spin
+                    updateMission();
+                    checkEdge();
 
-                //Every spin, check to see if the mission is updated,
-                //but the robot won't change behavior for a spin
-                updateMission();
-                checkEdge();
+                    //It is currently expected that the archon will not move or move very little
+                    //He will spawn a couple gardeners that will be mechanics and spawn a scout
+                    //and lumberjacks. Then tree cells will be spawned and built around the archon.
+                    rc.broadcastFloat(9998,center.x);
+                    rc.broadcastFloat(9999,center.y);
 
-                //It is currently expected that the archon will not move or move very little
-                //He will spawn a couple gardeners that will be mechanics and spawn a scout
-                //and lumberjacks. Then tree cells will be spawned and built around the archon.
-                rc.broadcastFloat(9998,center.x);
-                rc.broadcastFloat(9999,center.y);
+                    Direction newDir = new Direction((gardenerDir.radians+gardenerDirOffsetRad));
+                    rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(newDir, 3), 50,70,10);
+                    if (rc.canHireGardener(newDir) && rc.getTeamBullets() >= 150) {
+                        rc.hireGardener(newDir);
+                        gardenerDirOffsetRad = gardenerDirOffsetRad * -1;
+                    } else if(!rc.canHireGardener(newDir) && rc.getTeamBullets() >= 150){
+                        while(rc.hasRobotBuildRequirements(RobotType.GARDENER) && Clock.getBytecodesLeft() > 500){
+                            Direction direction = randomDirection();
+                            if(rc.canHireGardener(direction)){
+                                rc.hireGardener(direction);
+                            }
+                        }
+                    }
 
-                Direction newDir = new Direction((gardenerDir.radians+gardenerDirOffsetRad));
-                rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(newDir, 3), 50,70,10);
-                if (rc.canHireGardener(newDir) && rc.getTeamBullets() >= 150) {
-                    rc.hireGardener(newDir);
-                    gardenerDirOffsetRad = gardenerDirOffsetRad * -1;
+                    //donate method at the end of each robot's spin
+                    trollToll();
+                    Clock.yield();
+                }catch(Exception e){
+                    e.printStackTrace();
+                    Clock.yield();
                 }
-
-                //donate method at the end of each robot's spin
-                trollToll();
-                Clock.yield();
             }
 
         }catch(Exception e){

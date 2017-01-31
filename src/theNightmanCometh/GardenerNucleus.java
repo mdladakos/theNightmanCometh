@@ -58,6 +58,13 @@ public class GardenerNucleus extends Pathable {
         } catch (GameActionException e1) {
             e1.printStackTrace();
         }
+
+        RobotInfo[] robots = rc.senseNearbyRobots();
+        for(RobotInfo robot : robots){
+            if(robot.getType() == RobotType.ARCHON){
+                archonId = robot.getID();
+            }
+        }
         if (rc.senseNearbyRobots()[0].getType() == RobotType.ARCHON) {
             archonId = rc.senseNearbyRobots()[0].getID();
         }
@@ -81,7 +88,7 @@ public class GardenerNucleus extends Pathable {
                         rc.buildRobot(RobotType.LUMBERJACK, dir);
                         numberLumber++;
                     } else {
-                        for (int i = 0; i < 10; i++) {
+                        for (int i = 0; i < 50; i++) {
                             Direction dir2 = randomDirection();
                             if (rc.canBuildRobot(RobotType.LUMBERJACK, dir2)) {
                                 rc.buildRobot(RobotType.LUMBERJACK, dir2);
@@ -119,7 +126,7 @@ public class GardenerNucleus extends Pathable {
                     trollToll();
                     // Clock.yield() makes the robot wait until the next spin, then it will perform this loop again
 
-                if(rc.readBroadcast(9997) == rc.getID() && rc.getRoundNum() == 20){
+                if(rc.readBroadcast(9997) == rc.getID() && rc.getRoundNum() == 30){
                     isLocationFound = true;
                 }
                     Clock.yield();
@@ -127,6 +134,7 @@ public class GardenerNucleus extends Pathable {
             } catch (Exception e) {
                 System.out.println("Gardener Exception");
                 e.printStackTrace();
+                Clock.yield();
             }
 
         }
