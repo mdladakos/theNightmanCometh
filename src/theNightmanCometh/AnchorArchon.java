@@ -40,8 +40,8 @@ public class AnchorArchon extends Pathable{
 
                 rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(gardenerDir, 3), 0,0,0);
 
-                //Every turn, check to see if the mission is updated,
-                //but the robot won't change behavior for a turn
+                //Every spin, check to see if the mission is updated,
+                //but the robot won't change behavior for a spin
                 updateMission();
                 checkEdge();
 
@@ -58,7 +58,7 @@ public class AnchorArchon extends Pathable{
                     gardenerDirOffsetRad = gardenerDirOffsetRad * -1;
                 }
 
-                //donate method at the end of each robot's turn
+                //donate method at the end of each robot's spin
                 trollToll();
                 Clock.yield();
             }
@@ -84,9 +84,8 @@ public class AnchorArchon extends Pathable{
                 }
             }
 
-            if(rc.canMove(dest)){
-                path(dest);
-            }
+            path(dest);
+
         }
     }
 

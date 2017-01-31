@@ -27,10 +27,15 @@ public class Lumberjack extends Pathable{
                 else {
                     target = rc.getInitialArchonLocations(rc.getTeam().opponent())[0];
                 }
-                if (rc.canStrike() && rc.senseNearbyRobots(3,rc.getTeam().opponent()).length > 0){
-                    rc.strike();
+
+                if(rc.senseNearbyRobots(rc.getType().sensorRadius,rc.getTeam().opponent()).length > 0) {
+                    if (rc.canStrike() && rc.senseNearbyRobots(GameConstants.LUMBERJACK_STRIKE_RADIUS, rc.getTeam().opponent()).length > 0) {
+                        rc.strike();
+                        target = rc.senseNearbyRobots(rc.getType().sensorRadius, rc.getTeam().opponent())[0].getLocation();
+                    }
                 }
-                else if(rc.canChop(target)) {
+
+                if(rc.canChop(target)) {
                     if(rc.canShake(target)) {
                         rc.shake(target);
                     }
@@ -40,7 +45,7 @@ public class Lumberjack extends Pathable{
                     path(target);
                 }
 
-                //donate method at the end of each turn
+                //donate method at the end of each spin
                 trollToll();
                 Clock.yield();
             }

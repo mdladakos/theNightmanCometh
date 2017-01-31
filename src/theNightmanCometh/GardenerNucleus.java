@@ -19,11 +19,10 @@ public class GardenerNucleus extends Pathable {
     private int derpderp;
     private int lastRobotID = 0;
     private MapLocation anchor;
-    int archonId = 0;
+    private int archonId = 0;
 
     public GardenerNucleus(RobotController rc){
         this.rc = rc;
-        anchor = rc.getInitialArchonLocations(rc.getTeam())[0];
         runGardenerNucleus();
     }
 
@@ -39,6 +38,9 @@ public class GardenerNucleus extends Pathable {
         try {
             centerX = rc.readBroadcastFloat(9998);
             centerY = rc.readBroadcastFloat(9999);
+            if(rc.readBroadcast(9997) == 0){
+                rc.broadcast(9997, rc.getID());
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -47,72 +49,86 @@ public class GardenerNucleus extends Pathable {
 
         // Testing git commands
         // The code you want your robot to perform every round should be in this loop
-        while (true) {
-            // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
-            try {
-                //this should only happen once, and is therefore outside of the while loop
-                try {
-                    getTransmissionID();
-                } catch (GameActionException e) {
-                    e.printStackTrace();
-                }
-                if (rc.senseNearbyRobots()[0].getType() == RobotType.ARCHON) {
-                    archonId = rc.senseNearbyRobots()[0].getID();
-                }
 
-                while (mission == MISSION_NUMBER) {
+        // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
+
+        //this should only happen once, and is therefore outside of the while loop
+        try {
+            getTransmissionID();
+        } catch (GameActionException e1) {
+            e1.printStackTrace();
+        }
+        if (rc.senseNearbyRobots()[0].getType() == RobotType.ARCHON) {
+            archonId = rc.senseNearbyRobots()[0].getID();
+        }
+
+        while (mission == MISSION_NUMBER) {
 //                anchor = rc.getInitialArchonLocations(rc.getTeam())[0].add(rc.getInitialArchonLocations(rc.getTeam())[0].directionTo(center), (float) 5.5);
+            try {
+                if (rc.canSenseRobot(archonId)) {
+                    RobotInfo archon = rc.senseRobot(archonId);
+                    anchor = archon.getLocation().add(archon.getLocation().directionTo(center), 5.5f);
+                    System.out.println(anchor);
+                }
+                //Every spin, check to see if the mission is updated,
+                //but the robot won't change behavior for a spin
+                updateMission();
+                // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
 
-                    if (rc.canSenseRobot(archonId)) {
-                        RobotInfo archon = rc.senseRobot(archonId);
-                        anchor = archon.getLocation().add(archon.getLocation().directionTo(center), 5.5f);
-                        System.out.println(anchor);
-                    }
-                    //Every turn, check to see if the mission is updated,
-                    //but the robot won't change behavior for a turn
-                    updateMission();
-                    // Try/catch blocks stop unhandled exceptions, which cause your robot to explode
-
-                    if (rc.senseNearbyTrees(rc.getType().sensorRadius, Team.NEUTRAL).length > numberLumber) {
-                        dir = rc.getLocation().directionTo(rc.senseNearbyRobots()[0].getLocation()).opposite();
-                        if (rc.canBuildRobot(RobotType.LUMBERJACK, dir)) {
-                            rc.buildRobot(RobotType.LUMBERJACK, dir);
-                            numberLumber++;
-                        } else {
-                            for (int i = 0; i < 10; i++) {
-                                Direction dir2 = randomDirection();
-                                if (rc.canBuildRobot(RobotType.LUMBERJACK, dir2)) {
-                                    rc.buildRobot(RobotType.LUMBERJACK, dir2);
-                                    numberLumber++;
-                                }
+                if (rc.senseNearbyTrees(rc.getType().sensorRadius, Team.NEUTRAL).length > numberLumber) {
+                    dir = rc.getLocation().directionTo(rc.senseNearbyRobots()[0].getLocation()).opposite();
+                    if (rc.canBuildRobot(RobotType.LUMBERJACK, dir)) {
+                        rc.buildRobot(RobotType.LUMBERJACK, dir);
+                        numberLumber++;
+                    } else {
+                        for (int i = 0; i < 10; i++) {
+                            Direction dir2 = randomDirection();
+                            if (rc.canBuildRobot(RobotType.LUMBERJACK, dir2)) {
+                                rc.buildRobot(RobotType.LUMBERJACK, dir2);
+                                numberLumber++;
                             }
                         }
                     }
-
-                    // Determine if current location can hold a tree cell
-                    if (isLocationFound) {
-                        sensedTrees = rc.senseNearbyTrees((float) 1.1 * GameConstants.BULLET_TREE_RADIUS);
-                        if (sensedTrees.length < 6) {
-                            buildCell();
-                        }
-                    } else {
-                        path(anchor);
-                        testLocation();
-                    }
-
-                    if (sensedTrees != null) {
-                        waterTreeCell(sensedTrees);
-                    }
-
-                    //donate method goes at the end of each robot's turn
-                    trollToll();
-                    // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
-                    Clock.yield();
                 }
+
+                // Determine if current location can hold a tree cell
+                if (isLocationFound) {
+                    sensedTrees = rc.senseNearbyTrees((float) 1.1 * GameConstants.BULLET_TREE_RADIUS);
+                    if (sensedTrees.length < 6) {
+                        buildCell();
+                    }
+                } else {
+                    path(anchor);
+                    if(rc.senseNearbyRobots(rc.getType().sensorRadius,rc.getTeam().opponent()).length > 0){
+                        for (RobotInfo robot: rc.senseNearbyRobots(rc.getType().sensorRadius, rc.getTeam().opponent())){
+                            if(robot.getType()== RobotType.ARCHON && rc.canBuildRobot(RobotType.LUMBERJACK, rc.getLocation().directionTo(robot.getLocation()))){
+                                rc.buildRobot(RobotType.LUMBERJACK, rc.getLocation().directionTo(robot.getLocation()));
+                            }
+
+
+                        }
+                    }
+                    testLocation();
+                }
+
+                if (sensedTrees != null) {
+                    waterTreeCell(sensedTrees);
+                }
+
+                    //donate method goes at the end of each robot's spin
+                    trollToll();
+                    // Clock.yield() makes the robot wait until the next spin, then it will perform this loop again
+
+                if(rc.readBroadcast(9997) == rc.getID() && rc.getRoundNum() == 20){
+                    isLocationFound = true;
+                }
+                    Clock.yield();
+
             } catch (Exception e) {
                 System.out.println("Gardener Exception");
                 e.printStackTrace();
             }
+
         }
     }
 
@@ -153,7 +169,7 @@ public class GardenerNucleus extends Pathable {
             }
             if (derpderp == 3) {
                 derpderp = 0;
-                if(rc.onTheMap(rc.getLocation(),5f)) {
+                if(rc.onTheMap(rc.getLocation(),6f)) {
                     isLocationFound = true;
                     buildCell();
                 }

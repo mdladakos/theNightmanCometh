@@ -195,14 +195,15 @@ public strictfp class RobotPlayer {
         float bullets=rc.getTeamBullets();
         int VP=rc.getTeamVictoryPoints();
 
-        //if((1000-VP)<bullets/cost){
+/*        if((1000-VP)<bullets/cost){
             donation=(1000-VP)*cost;
-        //} else{
+        } else{
             donation=Math.round((bullets-bank)/cost)*cost;
-        //}
-        //if(donation >= cost){
-        //    rc.donate(donation);
-       // }
+        }
+        if(donation >= cost){
+            rc.donate(donation);
+        }
+*/
     }
 
 }
